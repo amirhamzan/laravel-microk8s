@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-app
+  namespace: laravel-microk8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel
+  template:
+    metadata:
+      labels:
+        app: laravel
+    spec:
+      containers:
+        - name: laravel
+          image: php:7.2-apache
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: laravel-code
+              mountPath: /var/www/html
+          env:
+            - name: APACHE_DOCUMENT_ROOT
+              value: "/var/www/html/public"
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              apt-get update && apt-get install -y \
+                curl \
+                g++ \
+                git \
+                libbz2-dev \
+                libfreetype6-dev \
+                libicu-dev \
+                libjpeg-dev \
+                libmcrypt-dev \
+                libpng-dev \
+                libreadline-dev \
+                unzip \
+                zip && \
+              docker-php-ext-install \
+                bcmath \
+                bz2 \
+                calendar \
+                iconv \
+                intl \
+                mbstring \
+                opcache \
+                pdo_mysql \
+                zip && \
+              a2enmod rewrite headers && \
+              apache2-foreground  # Start Apache server
+
+      volumes:
+        - name: laravel-code
+          hostPath:
+            path: /mnt/leadgen
+            type: Directory
